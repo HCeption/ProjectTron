@@ -7,6 +7,5 @@ namespace ProjectTron
 {
     class Trail : GameObject
     {
-        public Vector2 direction { get; set; }
     }
 }
