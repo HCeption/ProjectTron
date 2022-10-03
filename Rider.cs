@@ -9,6 +9,7 @@ namespace ProjectTron
 {
     class Rider : GameObject
     {
+        Keys oldKey;
         private Vector2 direction = new Vector2(1, 0);
         private Texture2D[] spriteStorage = new Texture2D[2];
         private int speed;
@@ -31,24 +32,28 @@ namespace ProjectTron
         private void HandleInput()
         {
             KeyboardState kState = Keyboard.GetState();
-            if (kState.IsKeyDown(Keys.W))
+            if (kState.IsKeyDown(Keys.W) && oldKey!=Keys.S)
             {
                 direction = new Vector2(0, -1);
+                oldKey = Keys.W;
                 ChangeSprite(1,false);
             }
-            else if (kState.IsKeyDown(Keys.A))
+            else if (kState.IsKeyDown(Keys.A) && oldKey != Keys.D)
             {
                 direction = new Vector2(-1, 0);
+                oldKey = Keys.A;
                 ChangeSprite(0,false);
             }
-            else if (kState.IsKeyDown(Keys.S))
+            else if (kState.IsKeyDown(Keys.S) && oldKey != Keys.W)
             {
                 direction = new Vector2(0, 1);
+                oldKey = Keys.S;
                 ChangeSprite(1,true);
             }
-            else if (kState.IsKeyDown(Keys.D))
+            else if (kState.IsKeyDown(Keys.D) && oldKey != Keys.A)
             {
                 direction = new Vector2(1, 0);
+                oldKey = Keys.D;
                 ChangeSprite(0,true);
             }
         }
