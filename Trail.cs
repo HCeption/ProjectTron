@@ -7,5 +7,9 @@ namespace ProjectTron
 {
     class Trail : GameObject
     {
+        public override void Reset()
+        {
+            Tron.removeObjects.Add(this);
+        }
     }
 }

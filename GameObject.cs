@@ -53,5 +53,9 @@ namespace ProjectTron
             spriteBatch.Draw(Tron.ct, rightLine, Color.Red);
             spriteBatch.Draw(Tron.ct, leftLine, Color.Red);
         }
+        public virtual void Reset()
+        {
+
+        }
     }
 }
