@@ -10,12 +10,12 @@ namespace ProjectTron
     class Rider : GameObject
     {
         Keys oldKey;
-        private Vector2 direction = new Vector2(1, 0);
+        Keys blockKey;
+        public Trail trail = null;
         private Color oColor; //Original color
         private Vector2 oPosition; //Original position (aka spawn position)
         private Vector2 oDirection; //Original direcion
         private Texture2D[] spriteStorage = new Texture2D[2];
-        public int speed;
         private float deadTimer = -1f; //Anything over -1 is used for a timer
         public bool dead { get; set; }
         bool allowInputs;
@@ -37,6 +37,7 @@ namespace ProjectTron
         {
             if (!Tron.gameOver)
             {
+                UpdateCurrentTrail(gameTime);
                 if (allowInputs) HandleInput();
                 Move(gameTime);
             }
@@ -48,30 +49,39 @@ namespace ProjectTron
         private void HandleInput()
         {
             KeyboardState kState = Keyboard.GetState();
-            if (kState.IsKeyDown(Keys.W) && oldKey!=Keys.S)
+            if (kState.IsKeyDown(Keys.W) && oldKey!=Keys.S && blockKey!=Keys.W)
             {
                 direction = new Vector2(0, -1);
+                trail = null; //Force new trail since were changing direction
                 oldKey = Keys.W;
+                blockKey = Keys.W;
                 ChangeSprite(direction);
             }
-            else if (kState.IsKeyDown(Keys.A) && oldKey != Keys.D)
+            else if (kState.IsKeyDown(Keys.A) && oldKey != Keys.D && blockKey != Keys.A)
             {
                 direction = new Vector2(-1, 0);
+                trail = null;
                 oldKey = Keys.A;
+                blockKey = Keys.A;
                 ChangeSprite(direction);
             }
-            else if (kState.IsKeyDown(Keys.S) && oldKey != Keys.W)
+            else if (kState.IsKeyDown(Keys.S) && oldKey != Keys.W && blockKey != Keys.S)
             {
                 direction = new Vector2(0, 1);
+                trail = null;
                 oldKey = Keys.S;
+                blockKey = Keys.S;
                 ChangeSprite(direction);
             }
-            else if (kState.IsKeyDown(Keys.D) && oldKey != Keys.A)
+            else if (kState.IsKeyDown(Keys.D) && oldKey != Keys.A && blockKey != Keys.D)
             {
                 direction = new Vector2(1, 0);
+                trail = null;
                 oldKey = Keys.D;
+                blockKey = Keys.D;
                 ChangeSprite(direction);
             }
+            //if (kState.IsKeyUp(blockKey)) blockKey = Keys.G;
         }
         /// <summary>
         /// Changes sprite and sprite mirroring to accomodate movement direction
@@ -99,8 +109,11 @@ namespace ProjectTron
         /// <param name="Other"></param>
         public override void OnCollision(GameObject Other)
         {
-            dead = true;
-            Tron.gameOver = true;
+            if (Other != trail)
+            {
+                dead = true;
+                Tron.gameOver = true;
+            }
         }
         /// <summary>
         /// Changes sprite color to indicate who died.
@@ -131,6 +144,33 @@ namespace ProjectTron
             oldKey = Keys.G;
             color = oColor;
             dead = false;
+        }
+        private void UpdateCurrentTrail(GameTime gameTime)
+        {
+            if (trail == null) NewTrail();
+            trail.TrailMove(gameTime);
+        }
+        private void NewTrail()
+        {
+            Vector2 temp = position;
+            if (direction == new Vector2(1, 0)) //Going right
+            {
+                temp.X -= sprite.Width/2;
+            }
+            else if (direction == new Vector2(-1, 0)) //Going left
+            {
+                temp.X += sprite.Width / 2;
+            }
+            else if (direction == new Vector2(0, 1)) //Going down
+            {
+                temp.Y -= sprite.Height / 2;
+            }
+            else //Going up
+            {
+                temp.Y += sprite.Height / 2;
+            }
+            trail = new Trail(temp, oColor,this,direction,speed);
+            Tron.newObjects.Add(trail);
         }
     }
 }

@@ -42,10 +42,11 @@ namespace ProjectTron
 
             Texture2D t1 = Content.Load<Texture2D>("RiderHorizontal");
             Texture2D t2 = Content.Load<Texture2D>("RiderVertical");
-
-            gameObjects.Add(new Rider(t1, t2, 75, true, new Vector2(0,0), new Vector2(1, 0),Color.Blue));
-            gameObjects.Add(new Rider(t1, t2, 75, false,new Vector2(200,0), new Vector2(-1, 0),Color.Green));
             ct = Content.Load<Texture2D>("CollisionTexture");
+
+            gameObjects.Add(new Rider(t1, t2, 75, true, new Vector2(50,50), new Vector2(1, 0),Color.Blue));
+            gameObjects.Add(new Rider(t1, t2, 75, false,new Vector2(600,50), new Vector2(-1, 0),Color.Green));
+            
             //Content.Load<Texture2D>("Rider");
 
             // TODO: use this.Content to load your game content here
@@ -56,7 +57,6 @@ namespace ProjectTron
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            HandleNewObjects();
 
             foreach (var item in gameObjects)
             {
@@ -70,6 +70,7 @@ namespace ProjectTron
                 }
             }
             if (gameOver) GameOverLogic();
+            HandleNewObjects();
             // TODO: Add your update logic here
 
             base.Update(gameTime);

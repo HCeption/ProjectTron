@@ -9,10 +9,12 @@ namespace ProjectTron
     public class GameObject
     {
         protected Texture2D sprite;
+        protected int speed;
+        protected Vector2 direction;
         protected float rotation;
         protected Vector2 origin;
         protected Color color = Color.White;
-        protected Vector2 position { get; set; }
+        protected Vector2 position;
         public virtual Rectangle Collision
         {
             get
@@ -39,7 +41,7 @@ namespace ProjectTron
                 OnCollision(other);
             }
         }
-        private void DrawCollisionBox(SpriteBatch spriteBatch)
+        public void DrawCollisionBox(SpriteBatch spriteBatch)
         {
 
 
