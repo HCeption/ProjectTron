@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 using System.Collections.Generic;
 
 namespace ProjectTron
@@ -11,6 +12,7 @@ namespace ProjectTron
         private SpriteBatch spriteBatch;
         private SpriteFont text;
         static public List<GameObject> gameObjects = new List<GameObject>();
+        static public List<GameObject> reverseObjects = new List<GameObject>();
         static public List<GameObject> newObjects = new List<GameObject>();
         static public List<GameObject> removeObjects = new List<GameObject>();
         private Vector2 screen = new Vector2(800, 600); //-----------------------------Change game res here!
@@ -44,9 +46,9 @@ namespace ProjectTron
             Texture2D t2 = Content.Load<Texture2D>("RiderVertical");
             ct = Content.Load<Texture2D>("CollisionTexture");
 
-            gameObjects.Add(new Rider(t1, t2, 75, true, new Vector2(50,50), new Vector2(1, 0),Color.Blue));
-            gameObjects.Add(new Rider(t1, t2, 75, false,new Vector2(600,50), new Vector2(-1, 0),Color.Green));
-            
+            gameObjects.Add(new Rider(t1, t2, 75, true, new Vector2(50, 50), new Vector2(1, 0), Color.Blue));
+            gameObjects.Add(new Rider(t1, t2, 75, false, new Vector2(600, 50), new Vector2(-1, 0), Color.Green));
+
             //Content.Load<Texture2D>("Rider");
 
             // TODO: use this.Content to load your game content here
@@ -56,7 +58,6 @@ namespace ProjectTron
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-
 
             foreach (var item in gameObjects)
             {
@@ -77,23 +78,32 @@ namespace ProjectTron
         }
         private void HandleNewObjects()
         {
+            bool change = false;
             foreach (var item in newObjects)
             {
                 gameObjects.Add(item);
+                change = true;
             }
             foreach (var item in removeObjects)
             {
                 gameObjects.Remove(item);
+                change = true;
             }
             newObjects.Clear();
             removeObjects.Clear();
+            if (change)
+            {
+                reverseObjects.Clear();
+                reverseObjects = new List<GameObject>(gameObjects);
+            }
         }
 
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin();
-            foreach (var item in gameObjects)
+            
+            foreach (var item in reverseObjects)
             {
                 item.Draw(spriteBatch);
             }
