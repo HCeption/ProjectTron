@@ -30,7 +30,7 @@ namespace ProjectTron
         public virtual void Update(GameTime gameTime){}
         public virtual void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(sprite, position, null, color, rotation, origin, 1, SpriteEffects.None, 1);
+            spriteBatch.Draw(sprite, position, null, color, rotation, origin, 1, SpriteEffects.None, 0);
             DrawCollisionBox(spriteBatch);
         }
         public virtual void OnCollision(GameObject other){}
