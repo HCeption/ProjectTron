@@ -42,6 +42,9 @@ namespace ProjectTron
             }
             if (dead) DeadAnimation(gameTime);
         }
+        /// <summary>
+        /// Accepts key inputs from local user and calls methods for changes whilst changing variabels.
+        /// </summary>
         private void HandleInput()
         {
             KeyboardState kState = Keyboard.GetState();
@@ -70,6 +73,10 @@ namespace ProjectTron
                 ChangeSprite(direction);
             }
         }
+        /// <summary>
+        /// Changes sprite and sprite mirroring to accomodate movement direction
+        /// </summary>
+        /// <param name="index"></param>
         private void ChangeSprite(Vector2 index)
         {
             int i=0;
@@ -86,11 +93,19 @@ namespace ProjectTron
         {
             position += direction * (float)gameTime.ElapsedGameTime.TotalSeconds * speed;
         }
+        /// <summary>
+        /// Simple method called upon collision. Anything related to collision will be here.
+        /// </summary>
+        /// <param name="Other"></param>
         public override void OnCollision(GameObject Other)
         {
             dead = true;
             Tron.gameOver = true;
         }
+        /// <summary>
+        /// Changes sprite color to indicate who died.
+        /// </summary>
+        /// <param name="gt"></param>
         private void DeadAnimation(GameTime gt)
         {
             if(deadTimer <= 0.25f) //Leeway for instabilities
@@ -104,6 +119,10 @@ namespace ProjectTron
             }
             deadTimer-=(float)gt.ElapsedGameTime.TotalSeconds;
         }
+        /// <summary>
+        /// After a player has died the game needs to be reset. All objects will have this called,
+        /// wherein they may reset themselves to restart the game.
+        /// </summary>
         public override void Reset()
         {
             position = oPosition;
