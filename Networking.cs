@@ -32,6 +32,8 @@ namespace ProjectTron
                     switch (msgType)
                     {
                         case MessageType.join:
+                            JoinMsg msg = complexMsg["message"].ToObject<JoinMsg>();
+                            HandleJoin(msg);
                             break;
                         case MessageType.update:
                             break;
@@ -45,11 +47,17 @@ namespace ProjectTron
                 //Breakpoint incase of decode fail
             }
         }
-        private void HandleJoin(IPEndPoint ip, JoinMsg msg)
+        private void HandleJoin(JoinMsg msg)
         {
-
+            Tron.NumberOfPlayers++;
+            var data = new UpdatePlayer()
+            {
+                otherPlayerDir = Tron.thisRider.GetDir(),
+                otherPlayerPos = Tron.thisRider.GetPos()
+            };
+            SendMsg(data,MessageType.update);
         }
-        public static void SendNetworkMsg(NetworkMsgBase msgBase, MessageType msgType)
+        public static void SendMsg(NetworkMsgBase msgBase, MessageType msgType)
         {
             var msg = new NetworkMsg()
             {
@@ -78,10 +86,10 @@ namespace ProjectTron
     public class UpdatePlayer : NetworkMsgBase
     {
         public Vector2 otherPlayerPos;
-        public Vector2 otherPlayerDirection;
+        public Vector2 otherPlayerDir;
     }
     [Serializable]
-    public class UpdateTrails : NetworkMsgBase
+    public class UpdateTrail : NetworkMsgBase
     {
         public List<Rectangle> rect;
         public List<Vector2> position;

@@ -12,6 +12,8 @@ namespace ProjectTron
 {
     public class Tron : Game
     {
+        public static int NumberOfPlayers = 1;
+        public static GameObject thisRider;
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
         private SpriteFont text;
@@ -50,7 +52,8 @@ namespace ProjectTron
             Texture2D t2 = Content.Load<Texture2D>("RiderVertical");
             ct = Content.Load<Texture2D>("CollisionTexture");
 
-            gameObjects.Add(new Rider(t1, t2, 75, true, new Vector2(50, 50), new Vector2(1, 0), Color.Blue));
+            thisRider = new Rider(t1, t2, 75, true, new Vector2(50, 50), new Vector2(1, 0), Color.Blue);
+            gameObjects.Add(thisRider);
             gameObjects.Add(new Rider(t1, t2, 75, false, new Vector2(600, 50), new Vector2(-1, 0), Color.Green));
 
             //Content.Load<Texture2D>("Rider");
@@ -139,6 +142,22 @@ namespace ProjectTron
                 gameOver = false;
             }
         }
-        
+        private void SendPlayerData()
+        {
+            var data = new UpdatePlayer()
+            {
+                otherPlayerDir = Tron.thisRider.GetDir(),
+                otherPlayerPos = Tron.thisRider.GetPos()
+            };
+            Networking.SendMsg(data, MessageType.update);
+        }
+        private void SendTrailData()
+        {
+            var data = new UpdateTrail()
+            {
+                
+            };
+            Networking.SendMsg(data, MessageType.update);
+        }
     }
 }

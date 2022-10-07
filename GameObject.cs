@@ -59,5 +59,13 @@ namespace ProjectTron
         {
 
         }
+        public Vector2 GetDir()
+        {
+            return direction;
+        }
+        public Vector2 GetPos()
+        {
+            return position;
+        }
     }
 }
