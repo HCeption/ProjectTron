@@ -7,6 +7,7 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Threading;
 
 namespace ProjectTron
 {
@@ -24,6 +25,7 @@ namespace ProjectTron
         private Vector2 screen = new Vector2(800, 600); //-----------------------------Change game res here!
         static public Texture2D ct;
         static public bool gameOver;
+        Thread receiver = new Thread(Networking.Receiver);
 
         public Tron()
         {
@@ -37,6 +39,7 @@ namespace ProjectTron
             graphics.PreferredBackBufferWidth = (int)screen.X;
             graphics.PreferredBackBufferHeight = (int)screen.Y;
             graphics.ApplyChanges();
+            receiver.Start();
             // TODO: Add your initialization logic here
 
             base.Initialize();
@@ -159,5 +162,6 @@ namespace ProjectTron
             };
             Networking.SendMsg(data, MessageType.update);
         }
+        
     }
 }

@@ -16,7 +16,7 @@ namespace ProjectTron
     {
         public static UdpClient client = new UdpClient(12500);
         public static IPEndPoint clientEP = new IPEndPoint(IPAddress.Any, 12500);
-        public void MessageDecoder(byte[] data, IPEndPoint ip)
+        public static void MessageDecoder(byte[] data, IPEndPoint ip)
         {
             try
             {
@@ -47,7 +47,7 @@ namespace ProjectTron
                 //Breakpoint incase of decode fail
             }
         }
-        private void HandleJoin(JoinMsg msg)
+        private static void HandleJoin(JoinMsg msg)
         {
             Tron.NumberOfPlayers++;
             var data = new UpdatePlayer()
@@ -67,6 +67,21 @@ namespace ProjectTron
             var serializedMsg = JsonConvert.SerializeObject(msg);
             byte[] byteMsg = Encoding.UTF8.GetBytes(serializedMsg);
             client.Send(byteMsg, byteMsg.Length, clientEP);
+        }
+        public static void Receiver()
+        {
+            try
+            {
+                while (true)
+                {
+                    var data = client.Receive(ref clientEP);
+                    MessageDecoder(data, clientEP);
+                }
+            }
+            catch
+            {
+                Console.WriteLine("Message receive failure");
+            }
         }
     }
     [Serializable]
