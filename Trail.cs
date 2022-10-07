@@ -15,7 +15,7 @@ namespace ProjectTron
         public Trail(Vector2 pos, Color c, Rider rider, Vector2 direction, int speed)
         {
             this.speed = speed;
-            rider.trail = this;
+            rider.currentTrail = this;
             this.direction = direction;
             this.rider = rider;
             rect = new Rectangle((int)pos.X, (int)pos.Y, (int)rectSize.X, (int)rectSize.Y);
@@ -75,7 +75,7 @@ namespace ProjectTron
         }
         public override void Reset()
         {
-            rider.trail = null;
+            rider.currentTrail = null;
             Tron.removeObjects.Add(this);
         }
     }
