@@ -95,6 +95,8 @@ namespace ProjectTron
             {
                 reverseObjects.Clear();
                 reverseObjects = new List<GameObject>(gameObjects);
+
+                reverseObjects.Reverse();
             }
         }
 

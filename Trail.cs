@@ -70,7 +70,7 @@ namespace ProjectTron
         }
         public override void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(sprite, position, rect, color, rotation, origin, 1, SpriteEffects.None, 1);
+            spriteBatch.Draw(sprite, position, rect, color, rotation, origin, 1, SpriteEffects.None, 0);
             base.DrawCollisionBox(spriteBatch);
         }
         public override void Reset()
