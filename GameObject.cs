@@ -9,8 +9,8 @@ namespace ProjectTron
     public class GameObject
     {
         protected Texture2D sprite;
-        protected int speed;
         protected Vector2 direction;
+        protected int speed;
         protected float rotation;
         protected Vector2 origin;
         protected Color color = Color.White;
@@ -30,7 +30,7 @@ namespace ProjectTron
         public virtual void Update(GameTime gameTime){}
         public virtual void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(sprite, position, null, color, rotation, origin, 1, SpriteEffects.None, 0);
+            spriteBatch.Draw(sprite, position, null, color, rotation, origin, 1, SpriteEffects.None, 1);
             DrawCollisionBox(spriteBatch);
         }
         public virtual void OnCollision(GameObject other){}
