@@ -20,9 +20,9 @@ namespace ProjectTron
         {
             try
             {
-                var jsonMsg = Encoding.UTF8.GetString(data);
-                JObject complexMsg = JObject.Parse(jsonMsg);
-                JToken complexMsgType = complexMsg["Type"];
+                var jsonMsg = Encoding.UTF8.GetString(data); //Convert JSON into JSON string
+                JObject complexMsg = JObject.Parse(jsonMsg); //Convert JSON into JSON Object
+                JToken complexMsgType = complexMsg["Type"]; //Fetch Type from JSON object
                 if (complexMsg != null && complexMsgType.Type is JTokenType.Integer)
                 {
                     //Succesful message, do rest in here
