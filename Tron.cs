@@ -25,6 +25,7 @@ namespace ProjectTron
         private Vector2 screen = new Vector2(800, 600); //-----------------------------Change game res here!
         static public Texture2D ct;
         static public bool gameOver;
+        private bool start;
         Thread receiver = new Thread(Networking.Receiver);
 
         public Tron()
@@ -114,16 +115,41 @@ namespace ProjectTron
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin();
-            
-            foreach (var item in reverseObjects)
+            StartMenu();
+            if (start)
             {
-                item.Draw(spriteBatch);
+                foreach (var item in reverseObjects)
+                {
+                    item.Draw(spriteBatch);
+                }
             }
             if (gameOver) GameOverText();
             // TODO: Add your drawing code here
             spriteBatch.End();
             base.Draw(gameTime);
         }
+        private void StartMenu()
+        {
+            KeyboardState k = Keyboard.GetState();
+            string select = "Press 'H' to Host and 'J' to Join";
+            Vector2 c = text.MeasureString(select);
+            if (start == false)
+            {
+                spriteBatch.DrawString(text, select, new Vector2(screen.X / 2 - c.X / 2, screen.Y / 2), Color.Red, 0, Vector2.Zero, 1f, 0, 0);
+
+            }
+            if (k.IsKeyDown(Keys.H))
+            {
+                start = true;
+                //Networking.Receiver();   udkommenteret da man ikke kan starte spillet uden
+            }
+            if (k.IsKeyDown(Keys.J))
+            {
+                start = true;
+                //Networking.SendMsg();    mangler noget i ()
+            }
+        }
+
         private void GameOverText()
         {
             string s = "GameOver!";
