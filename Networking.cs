@@ -15,18 +15,16 @@ namespace ProjectTron
     public enum MessageType { join, updatePlayer, updateTrail }
     class Networking
     {
-        Thread receiver = new Thread(Receiver);
+        Thread receiver;
         public static UdpClient client = new UdpClient(12500);
         public static IPEndPoint clientEP = new IPEndPoint(IPAddress.Any, 12500);
         public bool isHost;
-        private int[] sendTimer = new int[2];
+        private int sendTimer;
         public Networking(bool isHost)
         {
             this.isHost = isHost;
-            if (isHost)
-            {
-                receiver.Start();
-            }
+            receiver = new Thread(Receiver);
+            receiver.Start();
         }
         /// <summary>
         /// Non hosting client will send updates. Will receive echo with new data from host.
@@ -35,28 +33,28 @@ namespace ProjectTron
         {
             if (!isHost) //If NOT host
             {
-                sendTimer[0]--;
-                sendTimer[1]--;
-                if (sendTimer[0] < 1) //Send Player data timer
+                sendTimer--;
+                //sendTimer[1]--;
+                if (sendTimer < 1) //Send Player data timer
                 {
                     SendPlayerData(new IPEndPoint(IPAddress.Any, 12500));
-                    sendTimer[0] = 2; //Wait 1 frame before sending again (30hz update)
+                    sendTimer = 2; //Wait 1 frame before sending again (30hz update)
                 }
-                if (sendTimer[1] < 1)
-                {
-                    SendTrailData(new IPEndPoint(IPAddress.Any, 12500));
-                    sendTimer[1] = 4;//Wait 3 frames before sending again (15hz update)
-                }
+                //if (sendTimer[1] < 1)
+                //{
+                //    SendTrailData(new IPEndPoint(IPAddress.Any, 12500));
+                //    sendTimer[1] = 4;//Wait 3 frames before sending again (15hz update)
+                //}
             }
         }
         private void SendPlayerData(IPEndPoint ip)
         {
             var data = new UpdatePlayer()
             {
-                otherPlayerDir = Tron.thisRider.GetDir(),
-                otherPlayerPos = Tron.thisRider.GetPos()
+                dir = Tron.thisRider.GetDir(),
+                pos = Tron.thisRider.GetPos()
             };
-            Networking.SendMsg(data, MessageType.updatePlayer, ip);
+            SendMsg(data, MessageType.updatePlayer, ip);
         }
         private void SendTrailData(IPEndPoint ip)
         {
@@ -66,18 +64,23 @@ namespace ProjectTron
             {
                 trails = new List<GameObject>(temp)
             };
-            Networking.SendMsg(data, MessageType.updateTrail, ip);
+            SendMsg(data, MessageType.updateTrail, ip);
         }
-        private static void IncommingPlayer(UpdatePlayer msg)
+        private void IncommingPlayer(UpdatePlayer msg, IPEndPoint ip)
         {
-            Tron.otherRider.SetDir(msg.otherPlayerDir);
-            Tron.otherRider.SetPos(msg.otherPlayerPos);
+            Tron.otherRider.SetDir(msg.dir);
+            Tron.otherRider.SetPos(msg.pos);
+            if (isHost) //IF HOST - Echo back relevant info
+            {
+                SendPlayerData(ip); //Echo HOST rider to CLIENT
+                SendTrailData(ip); //Echo ALL trail data to CLIENT
+            }
         }
-        private static void IncommingTrail(UpdateTrail msg)
+        private void IncommingTrail(UpdateTrail msg)
         {
             Tron.HandleNewObjects(msg.trails, true);
         }
-        public static void MessageDecoder(byte[] data, IPEndPoint ip)
+        public void MessageDecoder(byte[] data, IPEndPoint ip)
         {
             try
             {
@@ -98,7 +101,7 @@ namespace ProjectTron
                             break;
                         case MessageType.updatePlayer:
                             UpdatePlayer msg1 = complexMsg["message"].ToObject<UpdatePlayer>();
-                            IncommingPlayer(msg1);
+                            IncommingPlayer(msg1,ip);
                             break;
                         case MessageType.updateTrail:
                             UpdateTrail msg2 = complexMsg["message"].ToObject<UpdateTrail>();
@@ -114,17 +117,17 @@ namespace ProjectTron
                 //Breakpoint incase of decode fail
             }
         }
-        private static void HandleJoin(JoinMsg msg, IPEndPoint ip)
+        private void HandleJoin(JoinMsg msg, IPEndPoint ip)
         {
             Tron.NumberOfPlayers++;
             var data = new UpdatePlayer()
             {
-                otherPlayerDir = Tron.thisRider.GetDir(),
-                otherPlayerPos = Tron.thisRider.GetPos()
+                dir = Tron.thisRider.GetDir(),
+                pos = Tron.thisRider.GetPos()
             };
             SendMsg(data, MessageType.updatePlayer, ip);
         }
-        public static void SendMsg(NetworkMsgBase msgBase, MessageType msgType, IPEndPoint ip)
+        public void SendMsg(NetworkMsgBase msgBase, MessageType msgType, IPEndPoint ip)
         {
             var msg = new NetworkMsg()
             {
@@ -135,7 +138,7 @@ namespace ProjectTron
             byte[] byteMsg = Encoding.UTF8.GetBytes(serializedMsg);
             client.Send(byteMsg, byteMsg.Length, ip);
         }
-        private static void Receiver()
+        private void Receiver()
         {
             try
             {
@@ -167,8 +170,8 @@ namespace ProjectTron
     [Serializable]
     public class UpdatePlayer : NetworkMsgBase
     {
-        public Vector2 otherPlayerPos;
-        public Vector2 otherPlayerDir;
+        public Vector2 pos;
+        public Vector2 dir;
     }
     [Serializable]
     public class UpdateTrail : NetworkMsgBase
