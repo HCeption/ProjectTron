@@ -67,5 +67,13 @@ namespace ProjectTron
         {
             return position;
         }
+        public void SetDir(Vector2 dir)
+        {
+            direction = dir;
+        }
+        public void SetPos(Vector2 pos)
+        {
+            position = pos;
+        }
     }
 }

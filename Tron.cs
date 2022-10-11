@@ -15,6 +15,7 @@ namespace ProjectTron
     {
         public static int NumberOfPlayers = 1;
         public static GameObject thisRider;
+        public static GameObject otherRider;
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
         private SpriteFont text;
@@ -26,7 +27,7 @@ namespace ProjectTron
         static public Texture2D ct;
         static public bool gameOver;
         private bool start;
-        Thread receiver = new Thread(Networking.Receiver);
+        
 
         public Tron()
         {
@@ -40,7 +41,6 @@ namespace ProjectTron
             graphics.PreferredBackBufferWidth = (int)screen.X;
             graphics.PreferredBackBufferHeight = (int)screen.Y;
             graphics.ApplyChanges();
-            receiver.Start();
             // TODO: Add your initialization logic here
 
             base.Initialize();
@@ -58,7 +58,8 @@ namespace ProjectTron
 
             thisRider = new Rider(t1, t2, 75, true, new Vector2(50, 50), new Vector2(1, 0), Color.Blue);
             gameObjects.Add(thisRider);
-            gameObjects.Add(new Rider(t1, t2, 75, false, new Vector2(600, 50), new Vector2(-1, 0), Color.Green));
+            otherRider = new Rider(t1, t2, 75, false, new Vector2(600, 50), new Vector2(-1, 0), Color.Green);
+            gameObjects.Add(otherRider);
 
             //Content.Load<Texture2D>("Rider");
 
@@ -82,14 +83,15 @@ namespace ProjectTron
                 }
             }
             if (gameOver) GameOverLogic();
-            HandleNewObjects();
+            HandleNewObjects(null, false);
             // TODO: Add your update logic here
 
             base.Update(gameTime);
         }
-        private void HandleNewObjects()
+        public static void HandleNewObjects(List<GameObject> list, bool fullChange)
         {
             bool change = false;
+
             foreach (var item in newObjects)
             {
                 gameObjects.Add(item);
@@ -102,12 +104,20 @@ namespace ProjectTron
             }
             newObjects.Clear();
             removeObjects.Clear();
+
             if (change)
             {
                 reverseObjects.Clear();
                 reverseObjects = new List<GameObject>(gameObjects);
 
                 reverseObjects.Reverse();
+            }
+
+            if (fullChange)
+            {
+                gameObjects = new List<GameObject>(list); //list only contains Trails
+                gameObjects.Insert(0, thisRider); //Need to re-add riders seperately
+                gameObjects.Insert(0, otherRider);
             }
         }
 
@@ -171,23 +181,5 @@ namespace ProjectTron
                 gameOver = false;
             }
         }
-        private void SendPlayerData()
-        {
-            var data = new UpdatePlayer()
-            {
-                otherPlayerDir = Tron.thisRider.GetDir(),
-                otherPlayerPos = Tron.thisRider.GetPos()
-            };
-            Networking.SendMsg(data, MessageType.update);
-        }
-        private void SendTrailData()
-        {
-            var data = new UpdateTrail()
-            {
-                
-            };
-            Networking.SendMsg(data, MessageType.update);
-        }
-        
     }
 }
