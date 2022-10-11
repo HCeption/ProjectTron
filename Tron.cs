@@ -19,6 +19,7 @@ namespace ProjectTron
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
         private SpriteFont text;
+        private Texture2D[] s = new Texture2D[2];
         static public List<GameObject> gameObjects = new List<GameObject>();
         static public List<GameObject> reverseObjects = new List<GameObject>();
         static public List<GameObject> newObjects = new List<GameObject>();
@@ -27,7 +28,7 @@ namespace ProjectTron
         static public Texture2D ct;
         static public bool gameOver;
         private bool start;
-        
+        private Network network;
 
         public Tron()
         {
@@ -52,14 +53,11 @@ namespace ProjectTron
 
             text = Content.Load<SpriteFont>("File");
 
-            Texture2D t1 = Content.Load<Texture2D>("RiderHorizontal");
-            Texture2D t2 = Content.Load<Texture2D>("RiderVertical");
+            s[0] = Content.Load<Texture2D>("RiderHorizontal");
+            s[1] = Content.Load<Texture2D>("RiderVertical");
             ct = Content.Load<Texture2D>("CollisionTexture");
 
-            thisRider = new Rider(t1, t2, 75, true, new Vector2(50, 50), new Vector2(1, 0), Color.Blue);
-            gameObjects.Add(thisRider);
-            otherRider = new Rider(t1, t2, 75, false, new Vector2(600, 50), new Vector2(-1, 0), Color.Green);
-            gameObjects.Add(otherRider);
+
 
             //Content.Load<Texture2D>("Rider");
 
@@ -70,20 +68,26 @@ namespace ProjectTron
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-
-            foreach (var item in gameObjects)
+            if (start)
             {
-                item.Update(gameTime);
-            }
-            foreach (var item in gameObjects)
-            {
-                foreach (var other in gameObjects)
+                foreach (var item in gameObjects)
                 {
-                    if (item != other) item.CheckCollision(other);
+                    item.Update(gameTime);
                 }
+                foreach (var item in gameObjects)
+                {
+                    foreach (var other in gameObjects)
+                    {
+                        if (item != other) item.CheckCollision(other);
+                    }
+                }
+                if (gameOver) GameOverLogic();
+                HandleNewObjects(null, false);
             }
-            if (gameOver) GameOverLogic();
-            HandleNewObjects(null, false);
+            else
+            {
+                StartMenu();
+            }
             // TODO: Add your update logic here
 
             base.Update(gameTime);
@@ -125,13 +129,18 @@ namespace ProjectTron
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin();
-            StartMenu();
             if (start)
             {
                 foreach (var item in reverseObjects)
                 {
                     item.Draw(spriteBatch);
                 }
+            }
+            else
+            {
+                string select = "Press 'H' to Host and 'J' to Join";
+                Vector2 c = text.MeasureString(select);
+                spriteBatch.DrawString(text, select, new Vector2(screen.X / 2 - c.X / 2, screen.Y / 2), Color.Red, 0, Vector2.Zero, 1f, 0, 0);
             }
             if (gameOver) GameOverText();
             // TODO: Add your drawing code here
@@ -141,22 +150,28 @@ namespace ProjectTron
         private void StartMenu()
         {
             KeyboardState k = Keyboard.GetState();
-            string select = "Press 'H' to Host and 'J' to Join";
-            Vector2 c = text.MeasureString(select);
-            if (start == false)
-            {
-                spriteBatch.DrawString(text, select, new Vector2(screen.X / 2 - c.X / 2, screen.Y / 2), Color.Red, 0, Vector2.Zero, 1f, 0, 0);
 
-            }
+
+
             if (k.IsKeyDown(Keys.H))
             {
                 start = true;
+                network = new Network(true);
                 //Networking.Receiver();   udkommenteret da man ikke kan starte spillet uden
+                thisRider = new Rider(s[0], s[1], 75, true, new Vector2(50, 50), new Vector2(1, 0), Color.Blue);
+                gameObjects.Add(thisRider);
+                otherRider = new Rider(s[0], s[1], 75, false, new Vector2(600, 50), new Vector2(-1, 0), Color.Green);
+                gameObjects.Add(otherRider);
             }
             if (k.IsKeyDown(Keys.J))
             {
                 start = true;
+                network = new Network(false);
                 //Networking.SendMsg();    mangler noget i ()
+                thisRider = new Rider(s[0], s[1], 75, false, new Vector2(50, 50), new Vector2(1, 0), Color.Blue);
+                gameObjects.Add(thisRider);
+                otherRider = new Rider(s[0], s[1], 75, true, new Vector2(600, 50), new Vector2(-1, 0), Color.Green);
+                gameObjects.Add(otherRider);
             }
         }
 

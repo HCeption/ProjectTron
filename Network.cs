@@ -13,14 +13,16 @@ using System.Threading;
 namespace ProjectTron
 {
     public enum MessageType { join, updatePlayer, updateTrail }
-    class Networking
+    class Network
     {
         Thread receiver;
         public static UdpClient client = new UdpClient(12500);
         public static IPEndPoint clientEP = new IPEndPoint(IPAddress.Any, 12500);
+        private IPEndPoint storedEP;
         public bool isHost;
         private int sendTimer;
-        public Networking(bool isHost)
+        private bool sendTrail = false;
+        public Network(bool isHost)
         {
             this.isHost = isHost;
             receiver = new Thread(Receiver);
@@ -45,6 +47,11 @@ namespace ProjectTron
                 //    SendTrailData(new IPEndPoint(IPAddress.Any, 12500));
                 //    sendTimer[1] = 4;//Wait 3 frames before sending again (15hz update)
                 //}
+            }
+            if (sendTrail)
+            {
+                SendTrailData(storedEP);
+                sendTrail = false;
             }
         }
         private void SendPlayerData(IPEndPoint ip)
@@ -73,7 +80,9 @@ namespace ProjectTron
             if (isHost) //IF HOST - Echo back relevant info
             {
                 SendPlayerData(ip); //Echo HOST rider to CLIENT
-                SendTrailData(ip); //Echo ALL trail data to CLIENT
+                //SendTrailData(ip); //Echo ALL trail data to CLIENT
+                sendTrail = true; //Delay sending until next pass (Monogame is 60hz, thereby delaying by 1hz)
+                storedEP = ip;
             }
         }
         private void IncommingTrail(UpdateTrail msg)
@@ -101,7 +110,7 @@ namespace ProjectTron
                             break;
                         case MessageType.updatePlayer:
                             UpdatePlayer msg1 = complexMsg["message"].ToObject<UpdatePlayer>();
-                            IncommingPlayer(msg1,ip);
+                            IncommingPlayer(msg1, ip);
                             break;
                         case MessageType.updateTrail:
                             UpdateTrail msg2 = complexMsg["message"].ToObject<UpdateTrail>();
@@ -140,17 +149,10 @@ namespace ProjectTron
         }
         private void Receiver()
         {
-            try
+            while (true)
             {
-                while (true)
-                {
-                    var data = client.Receive(ref clientEP);
-                    MessageDecoder(data, clientEP);
-                }
-            }
-            catch
-            {
-                Console.WriteLine("Message receive failure");
+                var data = client.Receive(ref clientEP);
+                MessageDecoder(data, clientEP);
             }
         }
     }
