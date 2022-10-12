@@ -27,7 +27,8 @@ namespace ProjectTron
         private Vector2 screen = new Vector2(800, 600); //-----------------------------Change game res here!
         static public Texture2D ct;
         static public bool gameOver;
-        private bool start;
+        private bool setup;
+        public static bool gameStart=true;
         private Network network;
 
         public Tron()
@@ -68,7 +69,7 @@ namespace ProjectTron
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
-            if (start)
+            if (setup && gameStart)
             {
                 foreach (var item in gameObjects)
                 {
@@ -83,6 +84,8 @@ namespace ProjectTron
                 }
                 if (gameOver) GameOverLogic();
                 HandleNewObjects(null, false);
+
+                network.Update();
             }
             else
             {
@@ -129,7 +132,7 @@ namespace ProjectTron
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin();
-            if (start)
+            if (setup)
             {
                 foreach (var item in reverseObjects)
                 {
@@ -155,7 +158,7 @@ namespace ProjectTron
 
             if (k.IsKeyDown(Keys.H))
             {
-                start = true;
+                setup = true;
                 network = new Network(true);
                 //Networking.Receiver();   udkommenteret da man ikke kan starte spillet uden
                 thisRider = new Rider(s[0], s[1], 75, true, new Vector2(50, 50), new Vector2(1, 0), Color.Blue);
@@ -165,13 +168,13 @@ namespace ProjectTron
             }
             if (k.IsKeyDown(Keys.J))
             {
-                start = true;
+                setup = true;
                 network = new Network(false);
                 //Networking.SendMsg();    mangler noget i ()
-                thisRider = new Rider(s[0], s[1], 75, false, new Vector2(50, 50), new Vector2(1, 0), Color.Blue);
-                gameObjects.Add(thisRider);
-                otherRider = new Rider(s[0], s[1], 75, true, new Vector2(600, 50), new Vector2(-1, 0), Color.Green);
+                otherRider = new Rider(s[0], s[1], 75, false, new Vector2(50, 50), new Vector2(1, 0), Color.Blue);
                 gameObjects.Add(otherRider);
+                thisRider = new Rider(s[0], s[1], 75, true, new Vector2(600, 50), new Vector2(-1, 0), Color.Green);
+                gameObjects.Add(thisRider);
             }
         }
 

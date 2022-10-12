@@ -12,12 +12,12 @@ using System.Threading;
 
 namespace ProjectTron
 {
-    public enum MessageType { join, updatePlayer, updateTrail }
+    public enum MessageType { join, updatePlayer, updateTrail, gameStart}
     class Network
     {
         Thread receiver;
         public static UdpClient client = new UdpClient(12500);
-        public static IPEndPoint clientEP = new IPEndPoint(IPAddress.Any, 12500);
+        public static IPEndPoint clientEP = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 12500);
         private IPEndPoint storedEP;
         public bool isHost;
         private int sendTimer;
@@ -27,6 +27,11 @@ namespace ProjectTron
             this.isHost = isHost;
             receiver = new Thread(Receiver);
             receiver.Start();
+            if (!isHost)
+            {
+                var data = new GameStart() { };
+                //SendMsg(data, MessageType.gameStart, ip);
+            }
         }
         /// <summary>
         /// Non hosting client will send updates. Will receive echo with new data from host.
@@ -116,6 +121,10 @@ namespace ProjectTron
                             UpdateTrail msg2 = complexMsg["message"].ToObject<UpdateTrail>();
                             IncommingTrail(msg2);
                             break;
+                        case MessageType.gameStart:
+                            Tron.gameStart = true;
+                            Tron.NumberOfPlayers++;
+                            break;
                         default:
                             break;
                     }
@@ -179,5 +188,10 @@ namespace ProjectTron
     public class UpdateTrail : NetworkMsgBase
     {
         public List<GameObject> trails;
+    }
+    [Serializable]
+    public class GameStart : NetworkMsgBase
+    {
+
     }
 }
