@@ -80,7 +80,7 @@ namespace ProjectTron
                 foreach (var other in gameObjects)
                 {
                     if (thisRider != other) thisRider.CheckCollision(other);
-                    if (otherRider != other) otherRider.CheckCollision(other);
+                    //if (otherRider != other) otherRider.CheckCollision(other);
                 }
                 if (gameOver) GameOverLogic();
                 HandleNewObjects(null, false);
@@ -166,6 +166,7 @@ namespace ProjectTron
                 thisRider = new Rider(s[0], s[1], 75, true, new Vector2(50, 50), new Vector2(1, 0), Color.Blue);
                 otherRider = new Rider(s[0], s[1], 75, false, new Vector2(600, 50), new Vector2(-1, 0), Color.Green);
                 network = new Network(true);
+                CreateWorldEdges((Rider)otherRider);
             }
             if (k.IsKeyDown(Keys.J))
             {
@@ -175,6 +176,7 @@ namespace ProjectTron
                 otherRider = new Rider(s[0], s[1], 75, false, new Vector2(50, 50), new Vector2(1, 0), Color.Blue);
                 thisRider = new Rider(s[0], s[1], 75, true, new Vector2(600, 50), new Vector2(-1, 0), Color.Green);
                 network = new Network(false);
+                CreateWorldEdges((Rider)otherRider);
             }
         }
 
@@ -222,8 +224,6 @@ namespace ProjectTron
                 {
                     resetAccept[0] = true;
                     network.SendMsg(new SimpleMsg { }, MessageType.restart, network.storedClient); //Resend 3 times. THIS MUST NOT BE LOST!
-                    network.SendMsg(new SimpleMsg { }, MessageType.restart, network.storedClient);
-                    network.SendMsg(new SimpleMsg { }, MessageType.restart, network.storedClient);
                 }
             }
             if(resetAccept[0] && resetAccept[1]) //If both players reset
@@ -242,13 +242,14 @@ namespace ProjectTron
             gameOver = false;
             resetAccept[0] = false;
             resetAccept[1] = false;
+            CreateWorldEdges((Rider)otherRider);
         }
-        private static void CreateWorldEdges()
+        private static void CreateWorldEdges(Rider r)
         {
-            newObjects.Add(new Trail(new Vector2(0, -5), Color.Black, null, new Vector2(0,0), 0, new Vector2(screen.X, 10))); //top
-            newObjects.Add(new Trail(new Vector2(0, screen.Y + 5), Color.Black, null, new Vector2(0, 0), 0, new Vector2(screen.X, 10))); //Bottom
-            newObjects.Add(new Trail(new Vector2(screen.X + 5, 0), Color.Black, null, new Vector2(0, 0), 0, new Vector2(10, screen.Y))); //Right
-            newObjects.Add(new Trail(new Vector2(-5, 0), Color.Black, null, new Vector2(0, 0), 0, new Vector2(10, screen.Y))); //Left
+            newObjects.Add(new Trail(new Vector2(0, -5), Color.Black, r, new Vector2(0,0), 0, new Vector2(screen.X, 10))); //top
+            newObjects.Add(new Trail(new Vector2(0, screen.Y + 5), Color.Black, r, new Vector2(0, 0), 0, new Vector2(screen.X, 10))); //Bottom
+            newObjects.Add(new Trail(new Vector2(screen.X + 5, 0), Color.Black, r, new Vector2(0, 0), 0, new Vector2(10, screen.Y))); //Right
+            newObjects.Add(new Trail(new Vector2(-5, 0), Color.Black, r, new Vector2(0, 0), 0, new Vector2(10, screen.Y))); //Left
         }
     }
 }

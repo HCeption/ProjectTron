@@ -166,7 +166,7 @@ namespace ProjectTron
         private void NewTrail()
         {
             oldTrail = currentTrail;
-            currentTrail = new Trail(position, oColor, this, direction, speed);
+            currentTrail = new Trail(position, oColor, this, direction, speed,Vector2.Zero);
             Tron.newObjects.Add(currentTrail);
         }
         public override void KillRider()
