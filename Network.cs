@@ -13,7 +13,7 @@ using System.IO;
 
 namespace ProjectTron
 {
-    public enum MessageType { join, updatePlayer, collision, restart}
+    public enum MessageType { join, updatePlayer, collision, restart, chat}
     public class Network
     {
         Thread receiver;
@@ -122,6 +122,10 @@ namespace ProjectTron
                         case MessageType.restart:
                             Tron.resetAccept[1] = true;
                             break;
+                        case MessageType.chat:
+                            ChatMsg msg2 = complexMsg["message"].ToObject<ChatMsg>();
+                            Chat.NewEntry(msg2.msg);
+                            break;
                         default:
                             break;
                     }
@@ -183,4 +187,8 @@ namespace ProjectTron
     }
     [Serializable]
     public class SimpleMsg : NetworkMsgBase { }
+    public class ChatMsg : NetworkMsgBase
+    {
+        public string msg;
+    }
 }

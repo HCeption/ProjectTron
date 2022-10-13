@@ -52,36 +52,36 @@ namespace ProjectTron
         private void HandleInput()
         {
             KeyboardState kState = Keyboard.GetState();
-            if (kState.IsKeyDown(Keys.W) && blockDir != Keys.S && blockKey != Keys.W)
+            if (kState.IsKeyDown(Keys.Up) && blockDir != Keys.Down && blockKey != Keys.Up)
             {
                 direction = new Vector2(0, -1);
                 NewTrail(); //Force new trail since were changing direction
-                blockDir = Keys.W;
-                blockKey = Keys.W;
+                blockDir = Keys.Up;
+                blockKey = Keys.Up;
                 ChangeSprite(direction);
             }
-            else if (kState.IsKeyDown(Keys.A) && blockDir != Keys.D && blockKey != Keys.A)
+            else if (kState.IsKeyDown(Keys.Left) && blockDir != Keys.Right && blockKey != Keys.Left)
             {
                 direction = new Vector2(-1, 0);
                 NewTrail();
-                blockDir = Keys.A;
-                blockKey = Keys.A;
+                blockDir = Keys.Left;
+                blockKey = Keys.Left;
                 ChangeSprite(direction);
             }
-            else if (kState.IsKeyDown(Keys.S) && blockDir != Keys.W && blockKey != Keys.S)
+            else if (kState.IsKeyDown(Keys.Down) && blockDir != Keys.Up && blockKey != Keys.Down)
             {
                 direction = new Vector2(0, 1);
                 NewTrail();
-                blockDir = Keys.S;
-                blockKey = Keys.S;
+                blockDir = Keys.Down;
+                blockKey = Keys.Down;
                 ChangeSprite(direction);
             }
-            else if (kState.IsKeyDown(Keys.D) && blockDir != Keys.A && blockKey != Keys.D)
+            else if (kState.IsKeyDown(Keys.Right) && blockDir != Keys.Left && blockKey != Keys.Right)
             {
                 direction = new Vector2(1, 0);
                 NewTrail();
-                blockDir = Keys.D;
-                blockKey = Keys.D;
+                blockDir = Keys.Right;
+                blockKey = Keys.Right;
                 ChangeSprite(direction);
             }
             //if (kState.IsKeyUp(blockKey)) blockKey = Keys.G;
