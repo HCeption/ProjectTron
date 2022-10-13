@@ -23,7 +23,8 @@ namespace ProjectTron
         static public List<GameObject> reverseObjects = new List<GameObject>();
         static public List<GameObject> newObjects = new List<GameObject>();
         static public List<GameObject> removeObjects = new List<GameObject>();
-        private static Vector2 screen = new Vector2(800, 600); //-----------------------------Change game res here!
+        public static Vector2 screen = new Vector2(1200, 800); //-----------------------------Change game res here!
+        public static Vector2 gameWindow = new Vector2(800, 600);
         static public Texture2D ct;
         static public bool gameOver;
         private bool setup;
@@ -91,6 +92,7 @@ namespace ProjectTron
             {
                 StartMenu();
             }
+            Chat.Update(gameTime);
             // TODO: Add your update logic here
 
             base.Update(gameTime);
@@ -130,7 +132,7 @@ namespace ProjectTron
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.White);
             spriteBatch.Begin();
             if (setup)
             {
@@ -145,10 +147,12 @@ namespace ProjectTron
             {
                 string select = "Press 'H' to Host and 'J' to Join";
                 Vector2 c = text.MeasureString(select);
-                spriteBatch.DrawString(text, select, new Vector2(screen.X / 2 - c.X / 2, screen.Y / 2), Color.Red, 0, Vector2.Zero, 1f, 0, 0);
+                spriteBatch.DrawString(text, select, new Vector2(gameWindow.X / 2 - c.X / 2, gameWindow.Y / 2), Color.Red, 0, Vector2.Zero, 1f, 0, 0);
             }
             if (gameOver) GameOverText();
             // TODO: Add your drawing code here
+
+            Chat.Draw(spriteBatch,text);
             spriteBatch.End();
             base.Draw(gameTime);
         }
@@ -164,9 +168,9 @@ namespace ProjectTron
 
                 //Networking.Receiver();   udkommenteret da man ikke kan starte spillet uden
                 thisRider = new Rider(s[0], s[1], 75, true, new Vector2(50, 50), new Vector2(1, 0), Color.Blue);
-                otherRider = new Rider(s[0], s[1], 75, false, new Vector2(600, 50), new Vector2(-1, 0), Color.Green);
+                otherRider = new Rider(s[0], s[1], 75, false, new Vector2(gameWindow.X-50, gameWindow.Y - 50), new Vector2(-1, 0), Color.Green);
                 network = new Network(true);
-                CreateWorldEdges((Rider)otherRider);
+                RemakeWorld((Rider)otherRider);
             }
             if (k.IsKeyDown(Keys.J))
             {
@@ -174,9 +178,9 @@ namespace ProjectTron
 
                 //Networking.SendMsg();    mangler noget i ()
                 otherRider = new Rider(s[0], s[1], 75, false, new Vector2(50, 50), new Vector2(1, 0), Color.Blue);
-                thisRider = new Rider(s[0], s[1], 75, true, new Vector2(600, 50), new Vector2(-1, 0), Color.Green);
+                thisRider = new Rider(s[0], s[1], 75, true, new Vector2(gameWindow.X - 50, gameWindow.Y - 50), new Vector2(-1, 0), Color.Green);
                 network = new Network(false);
-                CreateWorldEdges((Rider)otherRider);
+                RemakeWorld((Rider)otherRider);
             }
         }
 
@@ -184,10 +188,10 @@ namespace ProjectTron
         {
             string s = "GameOver!";
             Vector2 c = text.MeasureString(s);
-            spriteBatch.DrawString(text, s, new Vector2(screen.X / 2 - c.X / 2, screen.Y / 2), Color.Red, 0, Vector2.Zero, 1f, 0, 0);
+            spriteBatch.DrawString(text, s, new Vector2(gameWindow.X / 2 - c.X / 2, gameWindow.Y / 2), Color.Red, 0, Vector2.Zero, 1f, 0, 0);
             s = "Press 'R' to play again";
             c = text.MeasureString(s);
-            spriteBatch.DrawString(text, s, new Vector2(screen.X / 2 - ((c.X / 2) * 0.66f), screen.Y / 2 + 40), Color.Red, 0, Vector2.Zero, 0.66f, 0, 0);
+            spriteBatch.DrawString(text, s, new Vector2(gameWindow.X / 2 - ((c.X / 2) * 0.66f), gameWindow.Y / 2 + 40), Color.Red, 0, Vector2.Zero, 0.66f, 0, 0);
 
             Vector2 c2;
             string s2;
@@ -211,8 +215,8 @@ namespace ProjectTron
                 s2 = $"Other player wants to play again!";
                 c2 = text.MeasureString(s2);
             }
-            spriteBatch.DrawString(text, s, new Vector2(screen.X / 2 - (c.X / 2)*0.66f, (screen.Y / 3)*2), Color.Red, 0, Vector2.Zero, 0.66f, 0, 0);
-            spriteBatch.DrawString(text, s2, new Vector2(screen.X / 2 - (c2.X / 2)*0.66f, (screen.Y / 3)*2.5f), Color.Red, 0, Vector2.Zero, 0.66f, 0, 0);
+            spriteBatch.DrawString(text, s, new Vector2(gameWindow.X / 2 - (c.X / 2)*0.66f, (gameWindow.Y / 3)*2), Color.Red, 0, Vector2.Zero, 0.66f, 0, 0);
+            spriteBatch.DrawString(text, s2, new Vector2(gameWindow.X / 2 - (c2.X / 2)*0.66f, (gameWindow.Y / 3)*2.5f), Color.Red, 0, Vector2.Zero, 0.66f, 0, 0);
         }
         private void GameOverLogic()
         {
@@ -242,14 +246,14 @@ namespace ProjectTron
             gameOver = false;
             resetAccept[0] = false;
             resetAccept[1] = false;
-            CreateWorldEdges((Rider)otherRider);
+            RemakeWorld((Rider)otherRider);
         }
-        private static void CreateWorldEdges(Rider r)
+        private static void RemakeWorld(Rider r)
         {
-            newObjects.Add(new Trail(new Vector2(0, -5), Color.Black, r, new Vector2(0,0), 0, new Vector2(screen.X, 10))); //top
-            newObjects.Add(new Trail(new Vector2(0, screen.Y + 5), Color.Black, r, new Vector2(0, 0), 0, new Vector2(screen.X, 10))); //Bottom
-            newObjects.Add(new Trail(new Vector2(screen.X + 5, 0), Color.Black, r, new Vector2(0, 0), 0, new Vector2(10, screen.Y))); //Right
-            newObjects.Add(new Trail(new Vector2(-5, 0), Color.Black, r, new Vector2(0, 0), 0, new Vector2(10, screen.Y))); //Left
+            newObjects.Add(new Trail(new Vector2(0, -5), Color.Black, r, new Vector2(0,0), 0, new Vector2(gameWindow.X, 10))); //top
+            newObjects.Add(new Trail(new Vector2(0, screen.Y + 5), Color.Black, r, new Vector2(0, 0), 0, new Vector2(gameWindow.X, 10))); //Bottom
+            newObjects.Add(new Trail(new Vector2(gameWindow.X + 5, 0), Color.Black, r, new Vector2(0, 0), 0, new Vector2(10, gameWindow.Y))); //Right
+            newObjects.Add(new Trail(new Vector2(-5, 0), Color.Black, r, new Vector2(0, 0), 0, new Vector2(10, gameWindow.Y))); //Left
         }
     }
 }
