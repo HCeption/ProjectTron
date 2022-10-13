@@ -18,7 +18,7 @@ namespace ProjectTron
         private Vector2 oDirection; //Original direcion
         private static Texture2D[] spriteStorage = new Texture2D[2];
         private float deadTimer;
-        public bool dead { get; set; }
+        public bool dead;
         bool allowInputs;
         public Rider(Texture2D horiontal, Texture2D vertical, int speed, bool allowUserInputs, Vector2 oPosition, Vector2 oDirection, Color oColor)
         {
@@ -128,7 +128,7 @@ namespace ProjectTron
                 {
                     dead = true;
                     Tron.gameOver = true;
-                    Tron.network
+                    Tron.network.SendMsg(new SimpleMsg { }, MessageType.collision, Tron.network.clientEP);
                 }
             }
         }
@@ -168,6 +168,10 @@ namespace ProjectTron
             oldTrail = currentTrail;
             currentTrail = new Trail(position, oColor, this, direction, speed);
             Tron.newObjects.Add(currentTrail);
+        }
+        public override void KillRider()
+        {
+            dead = true;
         }
 
     }

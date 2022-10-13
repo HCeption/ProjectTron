@@ -77,5 +77,6 @@ namespace ProjectTron
             name = s;
         }
         public virtual void DirectionChange(Vector2 dir, Vector2 pos) { }
+        public virtual void KillRider() { }
     }
 }

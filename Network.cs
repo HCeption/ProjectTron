@@ -9,25 +9,36 @@ using System.Threading.Tasks;
 using System.Net.Sockets;
 using Microsoft.Xna.Framework;
 using System.Threading;
+using System.IO;
 
 namespace ProjectTron
 {
-    public enum MessageType { join, updatePlayer, collision}
+    public enum MessageType { join, updatePlayer, collision, restart}
     public class Network
     {
         Thread receiver;
+        private string localIp = "127.0.0.1"; //Inserted "" when not placed here, wtf?
         private int port = 12481;
         public UdpClient client;
         public IPEndPoint clientEP;
+        public IPEndPoint storedClient;
         public bool isHost;
         private int sendTimer;
         public Network(bool isHost)
         {
             this.isHost = isHost;
-            
+
             if (!isHost)//If client
             {
-                clientEP = new IPEndPoint(IPAddress.Parse("127.0.0.1"), port);
+                if (!File.Exists("HostIP.txt"))
+                {
+                    using (var sw = File.CreateText("HostIP.txt"))
+                    {
+                        sw.Write(localIp);
+                    }
+                }
+                clientEP = new IPEndPoint(IPAddress.Parse(File.ReadAllText("HostIP.txt")), port);
+
                 client = new UdpClient();
                 client.Connect(clientEP);
                 SendMsg(new JoinMsg { name = Tron.thisRider.GetName() }, MessageType.join, clientEP);
@@ -96,11 +107,20 @@ namespace ProjectTron
                     {
                         case MessageType.join:
                             JoinMsg msg = complexMsg["message"].ToObject<JoinMsg>();
-                            HandleJoin(msg, ip);
+                            storedClient = ip;
+                            Tron.gameStart = true;
+                            if (isHost) HandleJoin(msg, ip);
                             break;
                         case MessageType.updatePlayer:
                             UpdatePlayer msg1 = complexMsg["message"].ToObject<UpdatePlayer>();
                             IncommingPlayer(msg1, ip);
+                            break;
+                        case MessageType.collision:
+                            Tron.gameOver = true;
+                            Tron.otherRider.KillRider();
+                            break;
+                        case MessageType.restart:
+                            Tron.resetAccept[1] = true;
                             break;
                         default:
                             break;
@@ -120,7 +140,6 @@ namespace ProjectTron
                 name = Tron.thisRider.GetName()
             };
             SendMsg(data, MessageType.join, ip);
-            Tron.gameStart = true;
         }
         public void SendMsg(NetworkMsgBase msgBase, MessageType msgType, IPEndPoint ip)
         {
@@ -131,7 +150,7 @@ namespace ProjectTron
             };
             var serializedMsg = JsonConvert.SerializeObject(msg);
             byte[] byteMsg = Encoding.UTF8.GetBytes(serializedMsg);
-            if(isHost)client.Send(byteMsg, byteMsg.Length, ip);
+            if (isHost) client.Send(byteMsg, byteMsg.Length, ip);
             else client.Send(byteMsg, byteMsg.Length);
         }
         private void Receiver()
@@ -162,4 +181,6 @@ namespace ProjectTron
         public Vector2 pos;
         public Vector2 dir;
     }
+    [Serializable]
+    public class SimpleMsg : NetworkMsgBase { }
 }

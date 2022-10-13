@@ -28,7 +28,8 @@ namespace ProjectTron
         static public bool gameOver;
         private bool setup;
         public static bool gameStart;
-        public Network network;
+        public static Network network;
+        public static bool[] resetAccept = new bool[2];
 
         public Tron()
         {
@@ -185,18 +186,62 @@ namespace ProjectTron
             s = "Press 'R' to play again";
             c = text.MeasureString(s);
             spriteBatch.DrawString(text, s, new Vector2(screen.X / 2 - ((c.X / 2) * 0.66f), screen.Y / 2 + 40), Color.Red, 0, Vector2.Zero, 0.66f, 0, 0);
+
+            Vector2 c2;
+            string s2;
+            if (!resetAccept[0])
+            {
+                s = $"You're not ready!";
+                c = text.MeasureString(s);
+            }
+            else
+            {
+                s = $"You want to play again!";
+                c = text.MeasureString(s);
+            }
+            if (!resetAccept[1])
+            {
+                s2 = $"Other player is not ready!";
+                c2 = text.MeasureString(s2);
+            }
+            else
+            {
+                s2 = $"Other player wants to play again!";
+                c2 = text.MeasureString(s2);
+            }
+            spriteBatch.DrawString(text, s, new Vector2(screen.X / 2 - (c.X / 2)*0.66f, (screen.Y / 3)*2), Color.Red, 0, Vector2.Zero, 0.66f, 0, 0);
+            spriteBatch.DrawString(text, s2, new Vector2(screen.X / 2 - (c2.X / 2)*0.66f, (screen.Y / 3)*2.5f), Color.Red, 0, Vector2.Zero, 0.66f, 0, 0);
         }
         private void GameOverLogic()
         {
-            KeyboardState k = Keyboard.GetState();
-            if (k.IsKeyDown(Keys.R))
+            
+            if (resetAccept[0] == false)
             {
-                foreach (var item in gameObjects)
+                KeyboardState k = Keyboard.GetState();
+                if (k.IsKeyDown(Keys.R))
                 {
-                    item.Reset();
+                    resetAccept[0] = true;
+                    network.SendMsg(new SimpleMsg { }, MessageType.restart, network.storedClient); //Resend 3 times. THIS MUST NOT BE LOST!
+                    network.SendMsg(new SimpleMsg { }, MessageType.restart, network.storedClient);
+                    network.SendMsg(new SimpleMsg { }, MessageType.restart, network.storedClient);
                 }
-                gameOver = false;
             }
+            if(resetAccept[0] && resetAccept[1]) //If both players reset
+            {
+                ResetGame();
+            }
+        }
+        public static void ResetGame()
+        {
+            foreach (var item in gameObjects)
+            {
+                item.Reset();
+            }
+            thisRider.Reset();
+            otherRider.Reset();
+            gameOver = false;
+            resetAccept[0] = false;
+            resetAccept[1] = false;
         }
     }
 }
