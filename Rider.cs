@@ -18,7 +18,7 @@ namespace ProjectTron
         private Vector2 oDirection; //Original direcion
         private static Texture2D[] spriteStorage = new Texture2D[2];
         private float deadTimer;
-        public bool dead { get; set; }
+        public bool dead;
         bool allowInputs;
         public Rider(Texture2D horiontal, Texture2D vertical, int speed, bool allowUserInputs, Vector2 oPosition, Vector2 oDirection, Color oColor)
         {
@@ -52,7 +52,7 @@ namespace ProjectTron
         private void HandleInput()
         {
             KeyboardState kState = Keyboard.GetState();
-            if (kState.IsKeyDown(Keys.W) && blockDir!=Keys.S && blockKey!=Keys.W)
+            if (kState.IsKeyDown(Keys.W) && blockDir != Keys.S && blockKey != Keys.W)
             {
                 direction = new Vector2(0, -1);
                 NewTrail(); //Force new trail since were changing direction
@@ -92,15 +92,25 @@ namespace ProjectTron
         /// <param name="index"></param>
         private void ChangeSprite(Vector2 index)
         {
-            int i=0;
+            int i = 0;
             if (index.X == 0) i = 1;
             sprite = spriteStorage[i];
             origin = new Vector2(sprite.Width / 2, sprite.Height / 2);
-            if (index.X==1 || index.Y==1)
+            if (index.X == 1 || index.Y == 1)
             {
-                rotation = (float)((Math.PI/180)*180);
+                rotation = (float)((Math.PI / 180) * 180);
             }
             else rotation = 0;
+        }
+        public override void DirectionChange(Vector2 dir, Vector2 pos)
+        {
+            position = pos;
+            if (dir != direction)
+            {
+                ChangeSprite(dir);
+                direction = dir;
+                NewTrail();
+            }
         }
         private void Move(GameTime gameTime)
         {
@@ -114,10 +124,11 @@ namespace ProjectTron
         {
             if (Other != currentTrail)
             {
-                if(Other != oldTrail)
+                if (Other != oldTrail)
                 {
                     dead = true;
                     Tron.gameOver = true;
+                    Tron.network.SendMsg(new SimpleMsg { }, MessageType.collision, Tron.network.clientEP);
                 }
             }
         }
@@ -127,16 +138,16 @@ namespace ProjectTron
         /// <param name="gt"></param>
         private void DeadAnimation(GameTime gt)
         {
-            if(deadTimer <= 0.25f) //Leeway for instabilities
+            if (deadTimer <= 0.25f) //Leeway for instabilities
             {
                 color = Color.Red;
                 deadTimer = 2f;
             }
-            if(deadTimer>=0.75f && deadTimer <= 1.25f)
+            if (deadTimer >= 0.75f && deadTimer <= 1.25f)
             {
                 color = oColor;
             }
-            deadTimer-=(float)gt.ElapsedGameTime.TotalSeconds;
+            deadTimer -= (float)gt.ElapsedGameTime.TotalSeconds;
         }
         /// <summary>
         /// After a player has died the game needs to be reset. All objects will have this called,
@@ -155,8 +166,13 @@ namespace ProjectTron
         private void NewTrail()
         {
             oldTrail = currentTrail;
-            currentTrail = new Trail(position, oColor,this,direction,speed,Vector2.Zero);
+            currentTrail = new Trail(position, oColor, this, direction, speed);
             Tron.newObjects.Add(currentTrail);
         }
+        public override void KillRider()
+        {
+            dead = true;
+        }
+
     }
 }
