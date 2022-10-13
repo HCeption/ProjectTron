@@ -15,7 +15,7 @@ namespace ProjectTron
         static public List<GameObject> reverseObjects = new List<GameObject>();
         static public List<GameObject> newObjects = new List<GameObject>();
         static public List<GameObject> removeObjects = new List<GameObject>();
-        private Vector2 screen = new Vector2(800, 600); //-----------------------------Change game res here!
+        private static Vector2 screen = new Vector2(800, 600); //-----------------------------Change game res here!
         static public Texture2D ct;
         static public bool gameOver;
 
@@ -48,6 +48,7 @@ namespace ProjectTron
 
             gameObjects.Add(new Rider(t1, t2, 75, true, new Vector2(50, 50), new Vector2(1, 0), Color.Blue));
             gameObjects.Add(new Rider(t1, t2, 75, false, new Vector2(600, 50), new Vector2(-1, 0), Color.Green));
+            CreateWorldEdges();
 
             //Content.Load<Texture2D>("Rider");
 
@@ -134,6 +135,13 @@ namespace ProjectTron
                 }
                 gameOver = false;
             }
+        }
+        private static void CreateWorldEdges()
+        {
+            newObjects.Add(new Trail(new Vector2(0, -5), Color.Black, null, new Vector2(0,0), 0, new Vector2(screen.X, 10))); //top
+            newObjects.Add(new Trail(new Vector2(0, screen.Y + 5), Color.Black, null, new Vector2(0, 0), 0, new Vector2(screen.X, 10))); //Bottom
+            newObjects.Add(new Trail(new Vector2(screen.X + 5, 0), Color.Black, null, new Vector2(0, 0), 0, new Vector2(10, screen.Y))); //Right
+            newObjects.Add(new Trail(new Vector2(-5, 0), Color.Black, null, new Vector2(0, 0), 0, new Vector2(10, screen.Y))); //Left
         }
     }
 }

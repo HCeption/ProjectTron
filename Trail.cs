@@ -12,7 +12,7 @@ namespace ProjectTron
         private Rectangle rect;
         private Rider rider;
         float newSize;
-        public Trail(Vector2 pos, Color c, Rider rider, Vector2 direction, int speed)
+        public Trail(Vector2 pos, Color c, Rider rider, Vector2 direction, int speed, Vector2 r)
         {
             this.speed = speed;
             rider.currentTrail = this;
@@ -24,6 +24,11 @@ namespace ProjectTron
             color = c;
             origin = new Vector2(rectSize.X / 2, rectSize.Y / 2);
             newSize = rectSize.X;
+            if (r != Vector2.Zero)
+            {
+                rect.Width = (int)r.X;
+                rect.Height = (int)r.Y;
+            }
         }
         public override Rectangle Collision
         {
@@ -43,7 +48,7 @@ namespace ProjectTron
         }
         public override void OnCollision(GameObject other)
         {
-            
+
         }
         public void TrailMove(GameTime gameTime)
         {
