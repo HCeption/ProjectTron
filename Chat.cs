@@ -14,7 +14,8 @@ namespace ProjectTron
         private static bool chatBoxActive;
         private static Vector2 position = new Vector2(Tron.gameWindow.X + 10, Tron.screen.Y - 50);
         private static Rectangle rect = new Rectangle((int)Tron.gameWindow.X + 10, (int)Tron.screen.Y - 50, (int)(Tron.screen.X - Tron.gameWindow.X - 20), 40);
-        public static List<string> log = new List<string>() { "This is a dumb chat,","please type slowly as it will","register multiple inputs otherwise"};
+        public static List<string> log = new List<string>() { "This is a dumb chat,","please type slowly as it will","register multiple inputs otherwise",
+            "","To connect to host: Find HostIP.txt and input-","The ip from hosts ipconfig"};
         private static Keys oldKs = Keys.None;
         private static string currentMsg = "";
         public static void NewEntry(string s)
@@ -36,7 +37,7 @@ namespace ProjectTron
             sb.Draw(Tron.ct, position, rect, Color.LightGray, 0f, Vector2.Zero, 1, SpriteEffects.None, 0);
             if (currentMsg == "")
             {
-                if(!chatBoxActive)sb.DrawString(txt, "Click here to begin chatting", new Vector2(Tron.gameWindow.X + 10, Tron.screen.Y - 50), Color.Black, 0, Vector2.Zero, 0.5f, 0, 0);
+                if (!chatBoxActive) sb.DrawString(txt, "Click here to begin chatting", new Vector2(Tron.gameWindow.X + 10, Tron.screen.Y - 50), Color.Black, 0, Vector2.Zero, 0.5f, 0, 0);
                 else sb.DrawString(txt, "Ready for message!", new Vector2(Tron.gameWindow.X + 10, Tron.screen.Y - 50), Color.Black, 0, Vector2.Zero, 0.5f, 0, 0);
             }
             else
