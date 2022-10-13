@@ -13,7 +13,6 @@ namespace ProjectTron
 {
     public class Tron : Game
     {
-        public static int NumberOfPlayers = 1;
         public static GameObject thisRider;
         public static GameObject otherRider;
         private GraphicsDeviceManager graphics;
@@ -28,8 +27,8 @@ namespace ProjectTron
         static public Texture2D ct;
         static public bool gameOver;
         private bool setup;
-        public static bool gameStart=true;
-        private Network network;
+        public static bool gameStart;
+        public Network network;
 
         public Tron()
         {
@@ -71,16 +70,16 @@ namespace ProjectTron
                 Exit();
             if (setup && gameStart)
             {
+                thisRider.Update(gameTime);
+                otherRider.Update(gameTime);
                 foreach (var item in gameObjects)
                 {
                     item.Update(gameTime);
                 }
-                foreach (var item in gameObjects)
+                foreach (var other in gameObjects)
                 {
-                    foreach (var other in gameObjects)
-                    {
-                        if (item != other) item.CheckCollision(other);
-                    }
+                    if (thisRider != other) thisRider.CheckCollision(other);
+                    if (otherRider != other) otherRider.CheckCollision(other);
                 }
                 if (gameOver) GameOverLogic();
                 HandleNewObjects(null, false);
@@ -97,34 +96,34 @@ namespace ProjectTron
         }
         public static void HandleNewObjects(List<GameObject> list, bool fullChange)
         {
-            bool change = false;
+            //bool change = false;
 
             foreach (var item in newObjects)
             {
                 gameObjects.Add(item);
-                change = true;
+                //change = true;
             }
             foreach (var item in removeObjects)
             {
                 gameObjects.Remove(item);
-                change = true;
+                //change = true;
             }
             newObjects.Clear();
             removeObjects.Clear();
 
-            if (change)
-            {
-                reverseObjects.Clear();
-                reverseObjects = new List<GameObject>(gameObjects);
+            //if (change)
+            //{
+            //    reverseObjects.Clear();
+            //    reverseObjects = new List<GameObject>(gameObjects);
 
-                reverseObjects.Reverse();
-            }
+            //    reverseObjects.Reverse();
+            //}
 
             if (fullChange)
             {
                 gameObjects = new List<GameObject>(list); //list only contains Trails
-                gameObjects.Insert(0, thisRider); //Need to re-add riders seperately
-                gameObjects.Insert(0, otherRider);
+                //gameObjects.Insert(0, thisRider); //Need to re-add riders seperately
+                //gameObjects.Insert(0, otherRider);
             }
         }
 
@@ -134,10 +133,12 @@ namespace ProjectTron
             spriteBatch.Begin();
             if (setup)
             {
-                foreach (var item in reverseObjects)
+                foreach (var item in gameObjects)
                 {
                     item.Draw(spriteBatch);
                 }
+                thisRider.Draw(spriteBatch);
+                otherRider.Draw(spriteBatch);
             }
             else
             {
@@ -159,22 +160,20 @@ namespace ProjectTron
             if (k.IsKeyDown(Keys.H))
             {
                 setup = true;
-                network = new Network(true);
+
                 //Networking.Receiver();   udkommenteret da man ikke kan starte spillet uden
                 thisRider = new Rider(s[0], s[1], 75, true, new Vector2(50, 50), new Vector2(1, 0), Color.Blue);
-                gameObjects.Add(thisRider);
                 otherRider = new Rider(s[0], s[1], 75, false, new Vector2(600, 50), new Vector2(-1, 0), Color.Green);
-                gameObjects.Add(otherRider);
+                network = new Network(true);
             }
             if (k.IsKeyDown(Keys.J))
             {
                 setup = true;
-                network = new Network(false);
+
                 //Networking.SendMsg();    mangler noget i ()
                 otherRider = new Rider(s[0], s[1], 75, false, new Vector2(50, 50), new Vector2(1, 0), Color.Blue);
-                gameObjects.Add(otherRider);
                 thisRider = new Rider(s[0], s[1], 75, true, new Vector2(600, 50), new Vector2(-1, 0), Color.Green);
-                gameObjects.Add(thisRider);
+                network = new Network(false);
             }
         }
 

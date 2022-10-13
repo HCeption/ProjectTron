@@ -12,26 +12,33 @@ using System.Threading;
 
 namespace ProjectTron
 {
-    public enum MessageType { join, updatePlayer, updateTrail, gameStart}
-    class Network
+    public enum MessageType { join, updatePlayer, collision}
+    public class Network
     {
         Thread receiver;
-        public static UdpClient client = new UdpClient(12500);
-        public static IPEndPoint clientEP = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 12500);
-        private IPEndPoint storedEP;
+        private int port = 12481;
+        public UdpClient client;
+        public IPEndPoint clientEP;
         public bool isHost;
         private int sendTimer;
-        private bool sendTrail = false;
         public Network(bool isHost)
         {
             this.isHost = isHost;
+            
+            if (!isHost)//If client
+            {
+                clientEP = new IPEndPoint(IPAddress.Parse("127.0.0.1"), port);
+                client = new UdpClient();
+                client.Connect(clientEP);
+                SendMsg(new JoinMsg { name = Tron.thisRider.GetName() }, MessageType.join, clientEP);
+            }
+            else //If IS host
+            {
+                client = new UdpClient(port);
+                clientEP = new IPEndPoint(IPAddress.Any, port);
+            }
             receiver = new Thread(Receiver);
             receiver.Start();
-            if (!isHost)
-            {
-                var data = new GameStart() { };
-                //SendMsg(data, MessageType.gameStart, ip);
-            }
         }
         /// <summary>
         /// Non hosting client will send updates. Will receive echo with new data from host.
@@ -53,11 +60,6 @@ namespace ProjectTron
                 //    sendTimer[1] = 4;//Wait 3 frames before sending again (15hz update)
                 //}
             }
-            if (sendTrail)
-            {
-                SendTrailData(storedEP);
-                sendTrail = false;
-            }
         }
         private void SendPlayerData(IPEndPoint ip)
         {
@@ -68,31 +70,13 @@ namespace ProjectTron
             };
             SendMsg(data, MessageType.updatePlayer, ip);
         }
-        private void SendTrailData(IPEndPoint ip)
-        {
-            List<GameObject> temp = new List<GameObject>(Tron.gameObjects);
-            temp.RemoveRange(0, 2); //Remove Riders from list
-            var data = new UpdateTrail()
-            {
-                trails = new List<GameObject>(temp)
-            };
-            SendMsg(data, MessageType.updateTrail, ip);
-        }
         private void IncommingPlayer(UpdatePlayer msg, IPEndPoint ip)
         {
-            Tron.otherRider.SetDir(msg.dir);
-            Tron.otherRider.SetPos(msg.pos);
+            Tron.otherRider.DirectionChange(msg.dir, msg.pos);
             if (isHost) //IF HOST - Echo back relevant info
             {
                 SendPlayerData(ip); //Echo HOST rider to CLIENT
-                //SendTrailData(ip); //Echo ALL trail data to CLIENT
-                sendTrail = true; //Delay sending until next pass (Monogame is 60hz, thereby delaying by 1hz)
-                storedEP = ip;
             }
-        }
-        private void IncommingTrail(UpdateTrail msg)
-        {
-            Tron.HandleNewObjects(msg.trails, true);
         }
         public void MessageDecoder(byte[] data, IPEndPoint ip)
         {
@@ -100,8 +84,9 @@ namespace ProjectTron
             {
                 var jsonMsg = Encoding.UTF8.GetString(data); //Convert JSON into JSON string
                 JObject complexMsg = JObject.Parse(jsonMsg); //Convert JSON into JSON Object
-                JToken complexMsgType = complexMsg["Type"]; //Fetch Type from JSON object
-                if (complexMsg != null && complexMsgType.Type is JTokenType.Integer)
+                JToken complexMsgType = complexMsg["type"]; //Fetch Type from JSON object
+                //if (complexMsg != null && complexMsgType.Type is JTokenType.Integer)
+                if (complexMsg != null)
                 {
                     //Succesful message, do rest in here
                     MessageType msgType = (MessageType)complexMsgType.Value<int>();
@@ -117,14 +102,6 @@ namespace ProjectTron
                             UpdatePlayer msg1 = complexMsg["message"].ToObject<UpdatePlayer>();
                             IncommingPlayer(msg1, ip);
                             break;
-                        case MessageType.updateTrail:
-                            UpdateTrail msg2 = complexMsg["message"].ToObject<UpdateTrail>();
-                            IncommingTrail(msg2);
-                            break;
-                        case MessageType.gameStart:
-                            Tron.gameStart = true;
-                            Tron.NumberOfPlayers++;
-                            break;
                         default:
                             break;
                     }
@@ -137,13 +114,13 @@ namespace ProjectTron
         }
         private void HandleJoin(JoinMsg msg, IPEndPoint ip)
         {
-            Tron.NumberOfPlayers++;
-            var data = new UpdatePlayer()
+            Tron.otherRider.SetName(msg.name);
+            var data = new JoinMsg()
             {
-                dir = Tron.thisRider.GetDir(),
-                pos = Tron.thisRider.GetPos()
+                name = Tron.thisRider.GetName()
             };
-            SendMsg(data, MessageType.updatePlayer, ip);
+            SendMsg(data, MessageType.join, ip);
+            Tron.gameStart = true;
         }
         public void SendMsg(NetworkMsgBase msgBase, MessageType msgType, IPEndPoint ip)
         {
@@ -154,7 +131,8 @@ namespace ProjectTron
             };
             var serializedMsg = JsonConvert.SerializeObject(msg);
             byte[] byteMsg = Encoding.UTF8.GetBytes(serializedMsg);
-            client.Send(byteMsg, byteMsg.Length, ip);
+            if(isHost)client.Send(byteMsg, byteMsg.Length, ip);
+            else client.Send(byteMsg, byteMsg.Length);
         }
         private void Receiver()
         {
@@ -183,15 +161,5 @@ namespace ProjectTron
     {
         public Vector2 pos;
         public Vector2 dir;
-    }
-    [Serializable]
-    public class UpdateTrail : NetworkMsgBase
-    {
-        public List<GameObject> trails;
-    }
-    [Serializable]
-    public class GameStart : NetworkMsgBase
-    {
-
     }
 }

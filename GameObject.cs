@@ -8,6 +8,7 @@ namespace ProjectTron
 {
     public class GameObject
     {
+        protected string name = "tempName"; //WOULDNT LET US OUT THIS IN RIDER.
         protected Texture2D sprite;
         protected Vector2 direction;
         protected int speed;
@@ -67,13 +68,14 @@ namespace ProjectTron
         {
             return position;
         }
-        public void SetDir(Vector2 dir)
+        public string GetName()
         {
-            direction = dir;
+            return name;
         }
-        public void SetPos(Vector2 pos)
+        public void SetName(string s)
         {
-            position = pos;
+            name = s;
         }
+        public virtual void DirectionChange(Vector2 dir, Vector2 pos) { }
     }
 }
