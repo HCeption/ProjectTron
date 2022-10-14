@@ -15,12 +15,38 @@ namespace ProjectTron
         private static Vector2 position = new Vector2(Tron.gameWindow.X + 10, Tron.screen.Y - 50);
         private static Rectangle rect = new Rectangle((int)Tron.gameWindow.X + 10, (int)Tron.screen.Y - 50, (int)(Tron.screen.X - Tron.gameWindow.X - 20), 40);
         public static List<string> log = new List<string>() { "This is a dumb chat,","please type slowly as it will","register multiple inputs otherwise",
-            "","To connect to host: Find HostIP.txt and input-","The ip from hosts ipconfig"};
+            "","To connect to host: Find HostIP.txt and input-","The ip from hosts ipconfig","","Use psuedo REST using 'rest/get/index' or","'rest/delete/index' (extra / dont matter)"};
         private static Keys oldKs = Keys.None;
-        private static string currentMsg = "";
+        private static string userMsg = "";
+        private static bool userShiftDown;
         public static void NewEntry(string s)
         {
             log.Add(s);
+        }
+        private static void DeleteAt(int index)
+        {
+            try
+            {
+                string s = $"Removed entry {index}: " + log[index];
+                log.RemoveAt(index);
+                log.Add(s);
+                Tron.network.SendMsg(new ChatMsg { msg = s }, MessageType.chat, Tron.network.storedClient);
+            }
+            catch
+            {
+                Tron.network.SendMsg(new ChatMsg { msg = $"Out of index or failed: {index}/{log.Count}" }, MessageType.chat, Tron.network.storedClient);
+            }
+        }
+        private static void GetAt(int index)
+        {
+            try
+            {
+                Tron.network.SendMsg(new ChatMsg { msg = log[index] }, MessageType.chat, Tron.network.storedClient);
+            }
+            catch
+            {
+                Tron.network.SendMsg(new ChatMsg { msg = $"Out of index: {index}/{log.Count}" }, MessageType.chat, Tron.network.storedClient);
+            }
         }
         public static List<string> GetChatLog()
         {
@@ -35,14 +61,14 @@ namespace ProjectTron
                 x += 13;
             }
             sb.Draw(Tron.ct, position, rect, Color.LightGray, 0f, Vector2.Zero, 1, SpriteEffects.None, 0);
-            if (currentMsg == "")
+            if (userMsg == "")
             {
                 if (!chatBoxActive) sb.DrawString(txt, "Click here to begin chatting", new Vector2(Tron.gameWindow.X + 10, Tron.screen.Y - 50), Color.Black, 0, Vector2.Zero, 0.5f, 0, 0);
                 else sb.DrawString(txt, "Ready for message!", new Vector2(Tron.gameWindow.X + 10, Tron.screen.Y - 50), Color.Black, 0, Vector2.Zero, 0.5f, 0, 0);
             }
             else
             {
-                sb.DrawString(txt, currentMsg, new Vector2(Tron.gameWindow.X + 10, Tron.screen.Y - 50), Color.Black, 0, Vector2.Zero, 0.5f, 0, 0);
+                sb.DrawString(txt, userMsg, new Vector2(Tron.gameWindow.X + 10, Tron.screen.Y - 50), Color.Black, 0, Vector2.Zero, 0.5f, 0, 0);
             }
         }
         public static void Update(GameTime gameTime)
@@ -89,8 +115,33 @@ namespace ProjectTron
             KeyCheck(ks, Keys.X, 'x');
             KeyCheck(ks, Keys.Y, 'y');
             KeyCheck(ks, Keys.Z, 'z');
+            KeyCheck(ks, Keys.D0, '0');
+            KeyCheck(ks, Keys.D1, '1');
+            KeyCheck(ks, Keys.D2, '2');
+            KeyCheck(ks, Keys.D3, '3');
+            KeyCheck(ks, Keys.D4, '4');
+            KeyCheck(ks, Keys.D5, '5');
+            KeyCheck(ks, Keys.D6, '6');
+            KeyCheck(ks, Keys.D7, '7');
+            KeyCheck(ks, Keys.D8, '8');
+            KeyCheck(ks, Keys.D9, '9');
+            KeyCheck(ks, Keys.LeftShift, 'ø');
             KeyCheck(ks, Keys.Enter, ' ');
             KeyCheck(ks, Keys.Space, ' ');
+        }
+        public static void RestDecoder(string s)
+        {
+            string e = s.Substring(s.LastIndexOf('/') - 1);
+            if (e[0] == 't') //REST GET
+            {
+                int temp = Int32.Parse(s.Substring(s.LastIndexOf('/') + 1));
+                GetAt(temp);
+            }
+            else if (e[0] == 'e')//REST DELETE
+            {
+                int temp = Int32.Parse(s.Substring(s.LastIndexOf('/') + 1));
+                DeleteAt(temp);
+            }
         }
         private static void KeyCheck(KeyboardState ks, Keys k, char c)
         {
@@ -99,22 +150,46 @@ namespace ProjectTron
                 oldKs = k;
                 if (k == Keys.Enter)
                 {
-                    NewEntry(currentMsg);
-                    if (Tron.network != null)
-                    {
-                        Tron.network.SendMsg(new ChatMsg { msg = currentMsg }, MessageType.chat, Tron.network.storedClient);
-                    }
-                    currentMsg = "";
-                    chatBoxActive = false;
-                    return;
+                    SendMsg();
                 }
-                currentMsg += c;
+                if (!userShiftDown)
+                {
+                    if (c != 'ø') userMsg += c; //ø is empty char used to check for SHIFT key, needed the char for method to work.
+                    else userShiftDown = true;
+                }
+                else if (c == '7') userMsg += '/';
                 Console.WriteLine(c);
             }
             if (ks.IsKeyUp(k) && oldKs == k)
             {
+                if (c == 'ø')
+                {
+                    userShiftDown = false;
+                }
                 oldKs = Keys.None;
             }
+        }
+        private static void SendMsg()
+        {
+
+            if (userMsg[0] == 'r' && userMsg[1] == 'e' && userMsg[2] == 's' && userMsg[3] == 't' && userMsg[4] == '/')
+            {
+                RestDecoder(userMsg); //This wont enter? WTF?
+                if (Tron.network != null)
+                {
+                    Tron.network.SendMsg(new PsuedoREST { msg = userMsg }, MessageType.REST, Tron.network.storedClient);
+                    userMsg = "";
+                    chatBoxActive = false;
+                    return;
+                }
+            }
+            else NewEntry(userMsg);
+            if (Tron.network != null)
+            {
+                Tron.network.SendMsg(new ChatMsg { msg = userMsg }, MessageType.chat, Tron.network.storedClient);
+            }
+            userMsg = "";
+            chatBoxActive = false;
         }
     }
 }
