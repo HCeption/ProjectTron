@@ -13,7 +13,7 @@ using System.IO;
 
 namespace ProjectTron
 {
-    public enum MessageType { join, updatePlayer, collision, restart, chat}
+    public enum MessageType { join, updatePlayer, collision, restart, chat, REST}
     public class Network
     {
         Thread receiver;
@@ -126,6 +126,10 @@ namespace ProjectTron
                             ChatMsg msg2 = complexMsg["message"].ToObject<ChatMsg>();
                             Chat.NewEntry(msg2.msg);
                             break;
+                        case MessageType.REST:
+                            PsuedoREST msg3 = complexMsg["message"].ToObject<PsuedoREST>();
+                            Chat.RestDecoder(msg3.msg);
+                            break;
                         default:
                             break;
                     }
@@ -188,6 +192,10 @@ namespace ProjectTron
     [Serializable]
     public class SimpleMsg : NetworkMsgBase { }
     public class ChatMsg : NetworkMsgBase
+    {
+        public string msg;
+    }
+    public class PsuedoREST : NetworkMsgBase
     {
         public string msg;
     }
