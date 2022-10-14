@@ -15,7 +15,8 @@ namespace ProjectTron
         private static Vector2 position = new Vector2(Tron.gameWindow.X + 10, Tron.screen.Y - 50);
         private static Rectangle rect = new Rectangle((int)Tron.gameWindow.X + 10, (int)Tron.screen.Y - 50, (int)(Tron.screen.X - Tron.gameWindow.X - 20), 40);
         public static List<string> log = new List<string>() { "This is a dumb chat,","please type slowly as it will","register multiple inputs otherwise",
-            "","To connect to host: Find HostIP.txt and input-","The ip from hosts ipconfig","","Use psuedo REST using 'rest/get/index' or","'rest/delete/index' (extra / dont matter)"};
+            "","To connect to host: Find HostIP.txt and input-","The ip from hosts ipconfig","","Use psuedo REST using 'rest/get/index' or","'rest/delete/index' (extra / dont matter)",
+            "","Move Riders using arrow keys"};
         private static Keys oldKs = Keys.None;
         private static string userMsg = "";
         private static bool userShiftDown;
